@@ -1,0 +1,23 @@
+{
+  "41869934302e4b8cafac2d3c0e7c293d": {
+    "wineVersion": {
+      "bin": "/home/YOUR_USER/.config/heroic/tools/proton/dwproton-11.0-13-x86_64/proton",
+      "name": "Proton - dwproton-11.0-13-x86_64",
+      "type": "proton"
+    },
+    "winePrefix": "/home/YOUR_USER/Games/Heroic/Prefixes/default/Genshin Impact",
+    "disableUMU": false,
+    "nvidiaPrime": true,
+    "autoInstallDxvk": true,
+    "autoInstallVkd3d": true,
+    "enableEsync": true,
+    "enableFsync": true,
+    "enviromentOptions": [
+      { "key": "WINE_ENABLE_TIMEOUT_FIX", "value": "1" },
+      { "key": "UMU_USE_STEAM", "value": "1" },
+      { "key": "WINE_DISABLE_VULKAN_OPWR", "value": "1" },
+      { "key": "PROTON_USE_XALIA", "value": "0" }
+    ]
+  },
+  "version": "v0"
+}
