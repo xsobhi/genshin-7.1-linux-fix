@@ -8,14 +8,29 @@
 APP_NAME=41869934302e4b8cafac2d3c0e7c293d   # Genshin Impact, Epic Games Store
 HEROIC_BIN=${HEROIC_BIN:-/opt/Heroic/heroic}
 LOG=~/.local/state/Heroic/logs/heroic.log
+URL="heroic://launch?appName=$APP_NAME&runner=legendary"
 
-if ! pgrep -x heroic >/dev/null; then
-    before=$(grep -c 'Connectivity: online' "$LOG" 2>/dev/null || echo 0)
-    nohup "$HEROIC_BIN" >/dev/null 2>&1 &
-    for _ in $(seq 1 60); do
-        [ "$(grep -c 'Connectivity: online' "$LOG" 2>/dev/null || echo 0)" -gt "$before" ] && break
-        sleep 1
+# a second click while the first one is still waiting does nothing
+exec 9>"${XDG_RUNTIME_DIR:-/tmp}/genshin-launch.lock"
+flock -n 9 || exit 0
+
+if pgrep -f "^$HEROIC_BIN\$" >/dev/null && ! pgrep -f 'GenshinImpact.exe|launcher_epic.exe' >/dev/null; then
+    : # Heroic already open: its current log says whether it's online (checked below)
+elif ! pgrep -f "^$HEROIC_BIN\$" >/dev/null; then
+    old=$(stat -c %i "$LOG" 2>/dev/null)
+    setsid "$HEROIC_BIN" >/dev/null 2>&1 < /dev/null &
+    # Heroic starts a new log file on every start: wait for the new one, so an "online"
+    # line from the previous session can't trigger the launch too early
+    for _ in $(seq 1 30); do
+        [ "$(stat -c %i "$LOG" 2>/dev/null)" != "$old" ] && break
+        sleep 0.5
     done
-    sleep 3
+else
+    exit 0 # the game is already starting or running
 fi
-xdg-open "heroic://launch?appName=$APP_NAME&runner=legendary"
+for _ in $(seq 1 60); do
+    grep -q 'Connectivity: online' "$LOG" 2>/dev/null && break
+    sleep 1
+done
+sleep 3
+xdg-open "$URL"

@@ -102,7 +102,21 @@ If you launch through a `heroic://launch?...` link (desktop shortcut) **while He
 Heroic may process the launch before its connectivity check finishes (`Epic is Offline right now`).
 `launcher_epic.exe` then gets an **empty** `-AUTH_PASSWORD=` and waits forever — HoYoPlay never appears.
 Fix: start Heroic first, wait for `Connectivity: online` in `heroic.log`, then launch.
-[`scripts/genshin-launch.sh`](scripts/genshin-launch.sh) does exactly that.
+[`scripts/genshin-launch.sh`](scripts/genshin-launch.sh) does exactly that. It waits for Heroic's *new*
+log file (so an "online" line from the last session can't fire too early) and ignores repeat clicks
+while a launch is already in progress. Point a desktop shortcut's `Exec=` at it.
+
+### Game on a second disk ("game is not available")
+
+Heroic shows *not available* if the install folder is missing, e.g. a games partition that didn't mount
+at boot. The `winePrefix` / install paths in the config are just wherever you installed (Heroic's
+default is `~/Games/Heroic`). For a separate partition, mount it on first access so a slow disk can
+never be skipped at boot, e.g. in `/etc/fstab`:
+```
+UUID=<your-uuid>  /mnt/games  ext4  defaults,noatime,nofail,x-systemd.automount,x-systemd.device-timeout=30s  0  2
+```
+Also make sure no custom early-boot service is ordered `After=local-fs.target` *and*
+`Before=systemd-udev-trigger.service`: that deadlocks boot for 90 s and every non-root disk gets skipped.
 
 ## Performance fixes (lag, map tiles not loading, FPS drops)
 
